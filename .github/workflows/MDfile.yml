@@ -1,4 +1,4 @@
-name: Terraform infra Apply -Destroy
+name: Terraform MD-gen
 
 on:
   workflow_dispatch:
@@ -56,11 +56,16 @@ jobs:
             terraform destroy -auto-approve
           fi
 
+      - name: Set Git Config for Commits
+        run: |
+          git config --global user.name 'Balu'
+          git config --global user.email 'balu@example.com'
+
       - name: Generate Markdown with Terraform Docs
         if: github.event_name == 'push' || github.event_name == 'pull_request'
         uses: terraform-docs/gh-actions@v1.3.0
         with:
-          working-dir: .
+          working-dir: . 
           output-file: README.md
           output-method: inject
           git-push: true
