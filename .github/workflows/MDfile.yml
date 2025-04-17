@@ -1,4 +1,4 @@
-name: Terraform MD-gen
+name: Terraform CI/CD
 
 on:
   workflow_dispatch:
@@ -54,11 +54,13 @@ jobs:
         run: terraform plan
 
       # Git Config before terraform-docs
-      - name: Set Git Config for Commits
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
+      - name: Configure Git
         run: |
-          git config --global user.name 'Balu'
-          git config --global user.email 'balu@example.com'
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Checkout the main branch
+        run: git checkout main
 
       - name: Generate Markdown with Terraform Docs
         if: github.event_name == 'push' || github.event_name == 'pull_request'
