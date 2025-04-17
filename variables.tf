@@ -43,7 +43,7 @@ variable "db_password" {
 variable "tags" {
   description = "Tags to apply to resources"
   type        = map(string)
-  default     = {
+  default = {
     Name = "my-modules-resouces"
   }
 }
