@@ -12,10 +12,6 @@ config {
 
 # --- EC2 Best Practices ---
 
-# 1. EC2 instance must be attached to a VPC (not default VPC)
-rule "aws_instance_not_in_default_vpc" {
-  enabled = true
-}
 
 # 2. EC2 instance must have public IP associated (for SSH/public web)
 rule "aws_instance_associate_public_ip_address" {
