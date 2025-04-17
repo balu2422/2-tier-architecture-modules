@@ -1,3 +1,13 @@
+resource "aws_db_subnet_group" "default" {
+  name        = "${var.name}-db-subnet-group"
+  description = "RDS subnet group for ${var.name}"
+  subnet_ids  = [var.private_subnet_1_id, var.private_subnet_2_id]
+
+  tags = {
+    Name = "${var.name}-db-subnet-group"
+  }
+}
+
 resource "aws_db_instance" "default" {
   identifier        = "${var.name}-db"
   engine            = "mysql"
@@ -8,7 +18,7 @@ resource "aws_db_instance" "default" {
   username          = var.db_username
   password          = var.db_password
   vpc_security_group_ids = [var.db_security_group_id]
-  subnet_group_name    = var.db_subnet_group
+  db_subnet_group_name  = aws_db_subnet_group.default.name
   multi_az            = true
   storage_encrypted   = true
   backup_retention_period = 7
