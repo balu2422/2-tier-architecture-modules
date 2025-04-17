@@ -1,9 +1,9 @@
 region            = "us-east-1"
 vpc_name          = "my-vpc"
 ec2_name          = "my-ec2"
-ami_id            = "ami-xxxxxxxx"  # Replace with your AMI ID
+ami_id            = "ami-084568db4383264d4"  # Replace with your AMI ID
 instance_type     = "t2.micro"
-key_name          = "your-ssh-key-name"  # Replace with your SSH key name
+key_name          = "my-module-key"  # Replace with your SSH key name
 rds_name          = "my-rds"
 db_instance_class = "db.t2.micro"
 db_storage        = 20
