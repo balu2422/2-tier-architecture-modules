@@ -1,31 +1,9 @@
-resource "aws_db_subnet_group" "default" {
-  name        = "${var.name}-db-subnet-group"
-  description = "RDS subnet group for ${var.name}"
-  subnet_ids  = [var.private_subnet_1_id, var.private_subnet_2_id]
+resource "aws_db_subnet_group" "this" {
+  name       = "${var.name}-subnet-group"
+  subnet_ids = [var.private_subnet_1_id, var.private_subnet_2_id]
 
   tags = {
-    Name = "${var.name}-db-subnet-group"
-  }
-}
-
-resource "aws_db_instance" "default" {
-  identifier        = "${var.name}-db"
-  engine            = "mysql"
-  engine_version    = "8.0"
-  instance_class    = var.db_instance_class
-  allocated_storage = var.db_storage
-  db_name           = var.db_name
-  username          = var.db_username
-  password          = var.db_password
-  vpc_security_group_ids = [var.db_security_group_id]
-  db_subnet_group_name  = aws_db_subnet_group.default.name
-  multi_az            = true
-  storage_encrypted   = true
-  backup_retention_period = 7
-  publicly_accessible = false
-
-  tags = {
-    Name = "${var.name}-db"
+    Name = "${var.name}-subnet-group"
   }
 }
 
@@ -39,7 +17,7 @@ resource "aws_security_group" "db_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"] # Replace with your app subnet's CIDR for better security
   }
 
   egress {
@@ -51,5 +29,26 @@ resource "aws_security_group" "db_sg" {
 
   tags = {
     Name = "${var.name}-db-sg"
+  }
+}
+
+resource "aws_db_instance" "default" {
+  identifier              = "${var.name}-db"
+  engine                  = "mysql"
+  engine_version          = "8.0"
+  instance_class          = var.db_instance_class
+  allocated_storage       = var.db_storage
+  db_name                 = var.db_name
+  username                = var.db_username
+  password                = var.db_password
+  vpc_security_group_ids  = [aws_security_group.db_sg.id]
+  db_subnet_group_name    = aws_db_subnet_group.this.name
+  multi_az                = true
+  storage_encrypted       = true
+  backup_retention_period = 7
+  publicly_accessible     = false
+
+  tags = {
+    Name = "${var.name}-db"
   }
 }
