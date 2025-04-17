@@ -1,15 +1,13 @@
-# modules/vpc/outputs.tf
-
 output "vpc_id" {
   value = aws_vpc.main.id
 }
 
 output "public_subnet1_id" {
-  value = aws_subnet.public1.id
+  value = aws_subnet.public_subnet_1.id  # Updated to match the resource name
 }
 
 output "public_subnet2_id" {
-  value = aws_subnet.public2.id
+  value = aws_subnet.public_subnet_2.id  # Updated to match the resource name
 }
 
 output "db_security_group_id" {
