@@ -114,3 +114,48 @@ resource "aws_route_table_association" "private_2" {
   subnet_id      = aws_subnet.private_subnet_2.id
   route_table_id = aws_route_table.private.id
 }
+
+# Create Security Group for RDS
+resource "aws_security_group" "db_sg" {
+  name        = "${var.name}-db-sg"
+  description = "Security group for RDS"
+
+  ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]  # Allow access within the VPC
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.name}-db-sg"
+  }
+}
+
+# Output for Security Group ID
+output "db_security_group_id" {
+  value = aws_security_group.db_sg.id
+}
+
+# Create DB Subnet Group
+resource "aws_db_subnet_group" "db_subnet_group" {
+  name        = "${var.name}-db-subnet-group"
+  subnet_ids  = [aws_subnet.private_subnet_1.id, aws_subnet.private_subnet_2.id]
+  description = "Subnet group for RDS instances"
+
+  tags = {
+    Name = "${var.name}-db-subnet-group"
+  }
+}
+
+# Output for DB Subnet Group Name
+output "db_subnet_group_name" {
+  value = aws_db_subnet_group.db_subnet_group.name
+}
