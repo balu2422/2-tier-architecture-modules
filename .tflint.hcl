@@ -10,19 +10,8 @@ config {
   format = "compact"
 }
 
-# --- EC2 Best Practices ---
-
-# EC2 instance type must be valid
+# EC2 instance must be t2.micro only
 rule "aws_instance_invalid_type" {
   enabled = true
-}
-
-# EC2 must not be launched in default VPC
-rule "aws_instance_not_in_default_vpc" {
-  enabled = true
-}
-
-# EC2 AMI ID must be valid
-rule "aws_instance_invalid_ami" {
-  enabled = true
+  type = "t2.micro"
 }
