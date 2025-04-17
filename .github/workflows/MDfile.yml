@@ -4,11 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'Action to perform (apply or destroy)'
+        description: 'Terraform action to perform'
         required: true
+        default: 'none'
+        type: choice
+        options:
+          - destroy
+
   push:
     branches:
       - main
+
   pull_request:
     branches:
       - main
@@ -47,16 +53,9 @@ jobs:
       - name: Terraform plan
         run: terraform plan
 
-      - name: Terraform Apply or Destroy
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          if [ "${{ github.event.inputs.action }}" == "apply" ]; then
-            terraform apply -auto-approve
-          elif [ "${{ github.event.inputs.action }}" == "destroy" ]; then
-            terraform destroy -auto-approve
-          fi
-
+      # Git Config before terraform-docs
       - name: Set Git Config for Commits
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
         run: |
           git config --global user.name 'Balu'
           git config --global user.email 'balu@example.com'
@@ -65,7 +64,7 @@ jobs:
         if: github.event_name == 'push' || github.event_name == 'pull_request'
         uses: terraform-docs/gh-actions@v1.3.0
         with:
-          working-dir: . 
+          working-dir: .
           output-file: README.md
           output-method: inject
           git-push: true
@@ -80,3 +79,15 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           header: "Terraform Documentation"
           path: "./README.md"
+
+      - name: Applying Terraform after PR Merge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          terraform init
+          terraform apply -auto-approve
+
+      - name: Manually Destroy Infrastructure
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+        run: |
+          terraform init
+          terraform destroy -auto-approve
