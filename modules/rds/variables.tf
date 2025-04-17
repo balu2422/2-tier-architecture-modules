@@ -39,7 +39,12 @@ variable "db_security_group_id" {
   type        = string
 }
 
-variable "db_subnet_group" {
-  description = "Subnet group name for the RDS instance"
+variable "private_subnet_1_id" {
+  description = "Private subnet 1 ID"
+  type        = string
+}
+
+variable "private_subnet_2_id" {
+  description = "Private subnet 2 ID"
   type        = string
 }
