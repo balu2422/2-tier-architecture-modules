@@ -12,13 +12,17 @@ config {
 
 # --- EC2 Best Practices ---
 
-
-# 2. EC2 instance must have public IP associated (for SSH/public web)
-rule "aws_instance_associate_public_ip_address" {
+# EC2 instance type must be valid
+rule "aws_instance_invalid_type" {
   enabled = true
 }
 
-# 3. EC2 instance type must be valid
-rule "aws_instance_invalid_type" {
+# EC2 must not be launched in default VPC
+rule "aws_instance_not_in_default_vpc" {
+  enabled = true
+}
+
+# EC2 AMI ID must be valid
+rule "aws_instance_invalid_ami" {
   enabled = true
 }
