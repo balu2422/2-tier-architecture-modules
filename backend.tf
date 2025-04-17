@@ -1,12 +1,9 @@
-
 terraform {
   backend "s3" {
-    bucket         = "2-tier-architecture-modules"  
-    key            = "terraform/modulestate"
+    bucket         = "techopsbucket123"
+    key            = "vpcec2/terraform.tfstate8"
     region         = "us-east-1"
-    dynamodb_table = "2-tier-architecture-modules-table" 
-    encrypt        = true 
+    encrypt        = true
+    dynamodb_table = "demo_table123"
   }
 }
-
-

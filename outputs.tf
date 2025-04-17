@@ -1,14 +1,27 @@
-output "web1_public_ip" {
-  description = "Public IP of the first EC2 instance"
-  value       = module.ec2.web1_public_ip
+output "vpc_id" {
+  value = module.vpc.vpc_id
 }
 
-output "web2_public_ip" {
-  description = "Public IP of the second EC2 instance"
-  value       = module.ec2.web2_public_ip
+output "public_subnet_ids" {
+  value = module.subnets.public_subnet_ids
 }
 
-output "rds_endpoint" {
-  description = "RDS MySQL instance endpoint"
-  value       = module.rds.rds_endpoint
+output "private_subnet_ids" {
+  value = module.subnets.private_subnet_ids
+}
+
+output "web_instance_ids" {
+  value = module.ec2.web_instance_ids
+}
+
+output "web_instance_ips" {
+  value = module.ec2.web_instance_ips
+}
+
+output "db_endpoint" {
+  value = module.rds.db_endpoint
+}
+
+output "alb_dns_name" {
+  value = module.alb.alb_dns_name
 }

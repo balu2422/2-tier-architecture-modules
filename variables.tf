@@ -1,94 +1,49 @@
 variable "region" {
-  description = "The AWS region to deploy the infrastructure"
+  description = "The AWS region to deploy resources in"
+  type        = string
   default     = "us-east-1"
 }
 
-variable "vpc_name" {
-  description = "Name of the VPC"
+variable "cidr_block" {
+  description = "The CIDR block for the VPC"
   type        = string
-}
-
-variable "vpc_cidr" {
-  description = "VPC CIDR block"
   default     = "10.0.0.0/16"
 }
 
-variable "public_subnet_1_cidr" {
-  description = "CIDR block for Public Subnet 1"
-  default     = "10.0.1.0/24"
-}
-
-variable "public_subnet_2_cidr" {
-  description = "CIDR block for Public Subnet 2"
-  default     = "10.0.2.0/24"
-}
-
-variable "private_subnet_1_cidr" {
-  description = "CIDR block for Private Subnet 1"
-  default     = "10.0.3.0/24"
-}
-
-variable "private_subnet_2_cidr" {
-  description = "CIDR block for Private Subnet 2"
-  default     = "10.0.4.0/24"
-}
-
-variable "az1" {
-  description = "Availability Zone 1"
-  default     = "us-east-1a"
-}
-
-variable "az2" {
-  description = "Availability Zone 2"
-  default     = "us-east-1b"
-}
-
-variable "ec2_name" {
-  description = "Name for the EC2 instances"
-  type        = string
-}
-
-variable "ami_id" {
+variable "ami" {
   description = "AMI ID for the EC2 instances"
   type        = string
+  default     = "ami-084568db4383264d4"
 }
 
 variable "instance_type" {
-  description = "Instance type for EC2"
+  description = "Instance type for the EC2 instances"
+  type        = string
   default     = "t2.micro"
 }
 
-variable "key_name" {
-  description = "SSH key pair name for EC2 instances"
-  type        = string
-}
-
-variable "rds_name" {
-  description = "Name of the RDS instance"
-  type        = string
-}
-
-variable "db_instance_class" {
-  description = "RDS instance class"
-  default     = "db.t2.micro"
-}
-
-variable "db_storage" {
-  description = "Allocated storage for the RDS instance"
-  default     = 20
-}
-
 variable "db_name" {
-  description = "Database name"
+  description = "The name of the database"
+  type        = string
   default     = "mydatabase"
 }
 
 variable "db_username" {
-  description = "Username for the RDS instance"
+  description = "The username for the database"
+  type        = string
   default     = "admin"
 }
 
 variable "db_password" {
-  description = "Password for the RDS instance"
-  sensitive   = true
+  description = "The password for the database"
+  type        = string
+  default     = "mypassword"
+}
+
+variable "tags" {
+  description = "Tags to apply to resources"
+  type        = map(string)
+  default     = {
+    Name = "TerraformProject"
+  }
 }

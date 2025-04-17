@@ -1,29 +1,35 @@
-variable "name" {
-  description = "Name for the EC2 resources"
-  type        = string
+variable "instance_count" {
+  description = "Number of instances to create"
+  type        = number
+  default     = 2
 }
 
-variable "ami_id" {
-  description = "AMI ID for the EC2 instances"
+variable "ami" {
+  description = "AMI ID"
   type        = string
 }
 
 variable "instance_type" {
-  description = "Instance type for the EC2 instances"
+  description = "Instance type"
   type        = string
 }
 
-variable "vpc_id" {
-  description = "VPC ID where EC2 instances will be deployed"
-  type        = string
-}
-
-variable "public_subnet_ids" {
-  description = "List of public subnet IDs"
+variable "subnet_ids" {
+  description = "List of subnet IDs"
   type        = list(string)
 }
 
-variable "key_name" {
-  description = "SSH key pair name for EC2 instances"
+variable "security_group_id" {
+  description = "Security group ID"
   type        = string
+}
+
+variable "user_data" {
+  description = "User data script"
+  type        = string
+}
+
+variable "tags" {
+  description = "Tags to apply to resources"
+  type        = map(string)
 }
