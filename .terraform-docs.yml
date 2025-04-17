@@ -1,0 +1,20 @@
+# .terraform-docs.yml
+
+formatter: markdown table  # Format of the generated docs
+
+output:
+  file: README.md          # Inject into this file
+  mode: inject             # Replace content between <!-- BEGIN_TF_DOCS --> and <!-- END_TF_DOCS -->
+
+sections:
+  hide:
+    - footer               # Hide the footer
+    - header               # Hide the header
+
+settings:
+  anchor: true             # Adds anchor links to headings
+  sort-by: name            # Sort variables alphabetically
+  escape: true             # Escape special Markdown characters
+  required: true           # Show if a variable is required
+  default: true            # Show default values of variables
+  type: true               # Show variable types
