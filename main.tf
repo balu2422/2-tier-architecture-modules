@@ -22,14 +22,14 @@ module "ec2" {
 }
 
 module "rds" {
-  source              = "./modules/rds"
-  name                = var.rds_name
-  vpc_id              = module.vpc.vpc_id
-  db_instance_class   = var.db_instance_class
-  db_storage          = var.db_storage
-  db_name             = var.db_name
-  db_username         = var.db_username
-  db_password         = var.db_password
-  db_security_group_id = module.vpc.db_security_group_id
-  db_subnet_group     = module.vpc.db_subnet_group_name
+  source                = "./modules/rds"
+  name                  = var.rds_name
+  vpc_id                = module.vpc.vpc_id
+  db_instance_class     = var.db_instance_class
+  db_storage            = var.db_storage
+  db_name               = var.db_name
+  db_username           = var.db_username
+  db_password           = var.db_password
+  private_subnet_1_id   = module.vpc.private_subnet1_id
+  private_subnet_2_id   = module.vpc.private_subnet2_id
 }
