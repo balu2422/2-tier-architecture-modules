@@ -5,14 +5,13 @@ plugin "aws" {
   region  = "us-east-1"
 }
 
+# Format of output (valid values: default, compact, json)
 config {
-  format            = "compact"
-  deep_check        = true
-  disable_plugin_cache = false
-  ignore_module     = false
+  format = "compact"
 }
 
 # --- EC2 Best Practices ---
+
 # 1. EC2 instance must be attached to a VPC (not default VPC)
 rule "aws_instance_not_in_default_vpc" {
   enabled = true
@@ -25,10 +24,5 @@ rule "aws_instance_associate_public_ip_address" {
 
 # 3. EC2 instance type must be valid
 rule "aws_instance_invalid_type" {
-  enabled = true
-}
-
-# 4. EC2 instance must be in valid availability zones
-rule "aws_instance_invalid_ami" {
   enabled = true
 }
