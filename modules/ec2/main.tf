@@ -51,7 +51,7 @@ resource "aws_instance" "web1" {
               #!/bin/bash
               sudo apt update -y
               sudo apt install -y apache2
-              echo "Hello Balu, I am subnet1 EC2" | sudo tee /var/www/html/index.html
+              echo "Hello, I am web server 1" | sudo tee /var/www/html/index.html
               sudo systemctl start apache2
               sudo systemctl enable apache2
             EOF
@@ -73,7 +73,7 @@ resource "aws_instance" "web2" {
               #!/bin/bash
               sudo apt update -y
               sudo apt install -y apache2
-              echo "Hello Balu, I am subnet2 EC2" | sudo tee /var/www/html/index.html
+              echo "Hello, I am web server 2" | sudo tee /var/www/html/index.html
               sudo systemctl start apache2
               sudo systemctl enable apache2
             EOF
