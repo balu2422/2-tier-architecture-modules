@@ -8,6 +8,16 @@ variable "vpc_id" {
   type        = string
 }
 
+variable "private_subnet_1_id" {
+  description = "Private subnet 1 for RDS subnet group"
+  type        = string
+}
+
+variable "private_subnet_2_id" {
+  description = "Private subnet 2 for RDS subnet group"
+  type        = string
+}
+
 variable "db_instance_class" {
   description = "Instance class for the RDS database"
   type        = string
@@ -32,19 +42,4 @@ variable "db_password" {
   description = "Password for the RDS instance"
   type        = string
   sensitive   = true
-}
-
-variable "db_security_group_id" {
-  description = "Security group ID for the RDS instance"
-  type        = string
-}
-
-variable "private_subnet_1_id" {
-  description = "Private subnet 1 ID"
-  type        = string
-}
-
-variable "private_subnet_2_id" {
-  description = "Private subnet 2 ID"
-  type        = string
 }
