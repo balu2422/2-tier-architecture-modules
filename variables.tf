@@ -25,7 +25,7 @@ variable "instance_type" {
 variable "db_name" {
   description = "The name of the database"
   type        = string
-  default     = "mydatabase-module"
+  default     = "mydatabase"
 }
 
 variable "db_username" {
@@ -44,6 +44,6 @@ variable "tags" {
   description = "Tags to apply to resources"
   type        = map(string)
   default = {
-    Name = "my-modules-resouces"
+    Name = "TerraformProject"
   }
 }

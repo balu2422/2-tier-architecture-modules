@@ -50,11 +50,11 @@ variable "password" {
   default     = "mypassword"
 }
 
-variable "parameter_group_name" {
-  description = "The name of the DB parameter group"
-  type        = string
-  default     = "default.mysql8.0"
-}
+#variable "parameter_group_name" {
+#  description = "The name of the DB parameter group"
+#  type        = string
+#  default     = "default.mysql8.0"
+#}
 
 variable "vpc_security_group_ids" {
   description = "List of VPC security group IDs"

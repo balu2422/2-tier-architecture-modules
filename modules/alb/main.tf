@@ -4,6 +4,7 @@ resource "aws_lb" "web_lb" {
   load_balancer_type = "application"
   security_groups    = [var.security_group_id]
   subnets            = var.subnet_ids
+  drop_invalid_header_fields = true
 
   tags = var.tags
 }
