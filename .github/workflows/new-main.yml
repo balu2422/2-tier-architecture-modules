@@ -3,10 +3,13 @@ name: terraform deployment
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: 'Branch to deploy'
+      action:
+        description: 'Terraform action to perform'
         required: true
-        default: 'main'
+        default: 'none'
+        type: choice
+        options:
+          - destroy
   push:
     branches:
       - main
@@ -35,7 +38,7 @@ jobs:
       - name: Set up AWS credentials with OIDC
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: arn:aws:iam::877786395093:role/GitHubActionsRole
+          role-to-assume: arn:aws:iam::557548602903:role/mytestrole-OIDC
           aws-region: us-east-1
 
  
@@ -100,3 +103,11 @@ jobs:
         run: |
           terraform init
           terraform apply -auto-approve
+
+      - name: Manually Destroy Infrastructure
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+        run: |
+          terraform init
+          terraform destroy -auto-approve
+
+      
