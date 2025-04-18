@@ -52,8 +52,7 @@ jobs:
       - name: Terraform validate
         run: terraform validate
 
-      - name: Terraform plan
-        run: terraform plan
+      
 
       - name: Configure Git
         run: |
@@ -96,6 +95,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           terraform init
+          terraform plan
           terraform apply -auto-approve
 
       - name: Manually Destroy Infrastructure
