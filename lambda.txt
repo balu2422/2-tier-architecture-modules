@@ -1,0 +1,217 @@
+import boto3
+import urllib.request, urllib.parse, json, xml.etree.ElementTree as ET
+from datetime import datetime, timedelta
+
+s3 = boto3.client("s3")
+
+# ---------- CONFIGURATION ----------
+BUCKET = "landing-s3-ta"
+SRC_TBILL_KEY = "Tbill/TBill.xml"
+SRC_CPI_KEY = "CPI-U/CPI_U.xml"
+
+DEST_TBILL_PREFIX = "ready/t-bill/"
+DEST_CPI_PREFIX = "ready/cpi-u/"
+
+# ---------- UTILS ----------
+def read_xml_from_s3(bucket, key, Run_type = None):
+    """Read and parse existing XML file from S3."""
+    try:
+        obj = s3.get_object(Bucket=bucket, Key=key)
+        content = obj["Body"].read().decode("utf-8")
+        root = ET.fromstring(content)
+        data = []
+        for entry in root.findall(".//TimeSeriesEntry"):
+            date = entry.get("EntryStartDate", "").split(" ")[0]
+            value = entry.get("EntryValue", "")
+            if date and value:
+                data.append([date, value])
+        print(f"Read {len(data)} records from {key}")
+        return data
+    except s3.exceptions.NoSuchKey:
+        print(f"No such file: {key}")
+        return []
+    except Exception as e:
+        print(f"Error reading {key}: {e}")
+        return []
+
+def write_xml_to_s3_t_bill(bucket, key, rows, series_name, Is_source_path = None):
+    """Write XML back to S3 in same structure."""
+    root = ET.Element("Entries")
+    ts = ET.SubElement(root, "TimeSeries", EntryFrequency="WKLY" if "Bill" in series_name else "MON",
+                       OwnerName="root", RevisionNumber="1", TimeSeriesName=series_name)
+    for date, val in rows:
+        entry = ET.SubElement(ts, "TimeSeriesEntry")
+        entry.set("EntryStartDate", f"{date} 00:00:00")
+        entry.set("EntryValue", val)
+    xml_str = ET.tostring(root, encoding="unicode")
+    s3.put_object(Bucket=bucket, Key=key, Body=xml_str.encode("utf-8"))
+    if Is_source_path:
+        new_key = f'Tbill/archive/TBill_{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}.xml'
+        s3.copy_object(
+            Bucket=bucket,
+            CopySource={'Bucket': bucket, 'Key': Is_source_path},
+            Key=new_key
+        )
+        s3.put_object(Bucket=bucket, Key=Is_source_path, Body=xml_str.encode("utf-8"))
+    print(f"✅ Wrote {len(rows)} rows to {key}")
+
+def write_xml_to_s3_c_bill(bucket, key, rows, series_name, Is_source_path = None):
+    """Write XML back to S3 in same structure."""
+    root = ET.Element("Entries")
+    ts = ET.SubElement(root, "TimeSeries", ImportAction = "addModify", EntryFrequency = "MON",
+                       OwnerName="root", RevisionNumber="1", TimeSeriesName=series_name)
+    for date, val in rows:
+        entry = ET.SubElement(ts, "TimeSeriesEntry")
+        entry.set("EntryStartDate", f"{date} 00:00:00")
+        entry.set("EntryValue", val)
+        entry.set("ImportAction", "addModify")
+    xml_str = ET.tostring(root, encoding="unicode")
+    s3.put_object(Bucket=bucket, Key=key, Body=xml_str.encode("utf-8"))
+    if Is_source_path:
+        new_key = f'CPI-U/archive/CPI-U{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}.xml'
+        s3.copy_object(
+            Bucket=bucket,
+            CopySource={'Bucket': bucket, 'Key': Is_source_path},
+            Key=new_key
+        )
+        s3.put_object(Bucket=bucket, Key=Is_source_path, Body=xml_str.encode("utf-8"))
+    print(f"✅ Wrote {len(rows)} rows to {key}")
+
+def merge_new_rows(existing, new):
+    """Keep only rows with new dates."""
+    existing_dates = {r[0] for r in existing}
+    merged = existing.copy()
+    new_rows = [r for r in new if r[0] not in existing_dates]
+    merged.extend(new_rows)
+    merged.sort(key=lambda x: x[0])
+    print(f"Found {len(new_rows)} new rows.")
+    return merged, len(new_rows)
+
+# ---------- API CALLS ----------
+def fetch_tbill_data(start_date):
+
+    end_date = datetime.now().strftime("%Y-%m-%d")
+    print(start_date, end_date)
+
+    """Fetch 13-Week Bill data from FiscalData Treasury API."""
+    url = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query"
+    query_string = f"filter=security_type:eq:Bill,auction_date:lte:{end_date},auction_date:gt:{start_date},security_term:eq:13-Week"
+    field_string = f'fields=auction_date,high_investment_rate'
+    sort_string = f'sort=auction_date'
+
+    full_url = f"{url}?{query_string}&{field_string}&{sort_string}"
+
+    print(f"Fetching T-Bill data from: {full_url}")
+    try:
+        req = urllib.request.Request(full_url, headers={"User-Agent": "Lambda-Fetcher"})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            auctions = data.get("data", [])
+            records = []
+            for a in auctions:
+                date = a.get("auction_date", "")
+                rate = a.get("high_investment_rate")
+                if date and rate:
+                    try:
+                        rate = str(float(str(rate).replace("%", "").strip()))
+                        records.append([date, rate])
+                    except:
+                        pass
+            print(f"Fetched {len(records)} valid T-Bill records.")
+            return records
+    except Exception as e:
+        print(f"T-Bill API error: {e}")
+        return []
+
+        tbill_new = fetch_cpiu_data(max_year)
+def fetch_cpiu_data(start_year):
+    """Fetch CPI-U monthly data from BLS API (CUUR0000SA0)."""
+    end_year = datetime.now().strftime("%Y")
+
+    url = "https://api.bls.gov/publicAPI/v2/timeseries/data"
+    seriesid = f"CUUR0000SA0"
+    query_string = f'startyear={start_year}&endyear={end_year}'
+
+    full_url = f"{url}/{seriesid}?{query_string}"
+    print(full_url)
+
+    print("Fetching CPI-U data from BLS API...")
+    try:
+        req = urllib.request.Request(full_url, headers={"User-Agent": "Lambda-Fetcher"})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        records = []
+        for series in data["Results"]["series"]:
+            series_id = series["seriesID"]
+            data = series["data"]
+
+            # Filter for months only (exclude M13 = annual average)
+            monthly_data = [item for item in data if item["period"].startswith("M") and item["period"] != "M13"]
+
+            # Sort by year (ascending) and period (ascending)
+            monthly_data.sort(key=lambda x: (int(x["year"]), int(x["period"][1:])))
+
+            # Print results
+            for item in monthly_data:
+                records.append([f'{item["year"]}-{item["period"].replace('M','')}-01',item["value"]])
+        return records
+    except Exception as e:
+        print(f"CPI-U API error: {e}")
+        return []
+
+# ---------- MAIN ----------
+def lambda_handler(event, context):
+
+    print("🚀 Starting Lambda data fetch + validation pipeline")
+
+    if event.get("Run_type", '') == 'T_Bill':
+        # ---- 1) Read existing ----
+        tbill_existing = read_xml_from_s3(BUCKET, SRC_TBILL_KEY)
+        max_date = max(i[0] for i in tbill_existing)
+
+        # ---- 2) Fetch from APIs ----
+        tbill_new = fetch_tbill_data(max_date)
+
+        # ---- 3) Merge ----
+        tbill_merged, added_count = merge_new_rows(tbill_existing, tbill_new)
+
+        # ---- 4) Write to /ready/ ----
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        if added_count:
+            dest_tbill_key = f"{DEST_TBILL_PREFIX}Target_Tbill.xml"
+            write_xml_to_s3_t_bill(BUCKET, dest_tbill_key, tbill_merged, "T_Bill",SRC_TBILL_KEY)
+
+        summary = {
+            "TBill": {"new_rows": added_count, "dest": DEST_TBILL_PREFIX},
+        }
+        print("✅ Process completed:", summary)
+        print("--------------------")
+        return {"statusCode": 200, "body": json.dumps(summary, indent=2)}
+    
+    elif event.get("Run_type", '') == 'CPI-U':
+        # ---- 1) Read existing ----
+        cbill_existing = read_xml_from_s3(BUCKET, SRC_CPI_KEY)
+        max_year = max(i[0] for i in cbill_existing)[:4]
+
+        # ---- 2) Fetch from APIs ----
+        tbill_new = fetch_cpiu_data(max_year)
+        # ---- 3) Merge ----
+        cbill_merged, added_count = merge_new_rows(cbill_existing, tbill_new)
+
+        # ---- 4) Write to /ready/ ----
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        if added_count:
+            dest_cpi_u_key = f"{DEST_CPI_PREFIX}Target_Cbill.xml"
+            write_xml_to_s3_c_bill(BUCKET, dest_cpi_u_key, cbill_merged, "CPI-U",SRC_CPI_KEY)
+
+        summary = {
+            "CBill": {"new_rows": added_count, "dest": DEST_CPI_PREFIX},
+        }
+        print("✅ Process completed:", summary)
+        print("--------------------")
+        return {"statusCode": 200, "body": json.dumps(summary, indent=2)}
+
+
+# For local test
+if __name__ == "__main__":
+    print(json.dumps(lambda_handler({}, {}), indent=2))
